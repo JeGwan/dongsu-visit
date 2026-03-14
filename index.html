@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>동수네 부부 방문 🎉</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Playfair+Display:wght@700;900&display=swap');
+
+    :root {
+      --bg: #0f0f14;
+      --surface: #1a1a24;
+      --surface-2: #242435;
+      --surface-3: #2e2e42;
+      --accent: #f97316;
+      --accent-light: #fb923c;
+      --accent-glow: rgba(249, 115, 22, 0.15);
+      --text: #f1f1f4;
+      --text-muted: #9b9bb0;
+      --text-dim: #6b6b80;
+      --border: rgba(255,255,255,0.06);
+      --day1: #f97316;
+      --day2: #8b5cf6;
+      --radius: 16px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative;
+      padding: 80px 24px 60px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(249,115,22,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-badge .dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.5); }
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.5rem, 8vw, 4.5rem);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff 0%, #ccc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--text-muted);
+      font-weight: 300;
+      max-width: 400px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .hero-date {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 28px;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, var(--surface-2), var(--surface-3));
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 15px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .hero-date i { color: var(--accent); }
+
+    /* ── Day Tabs ── */
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      padding: 0 24px;
+      margin-bottom: 40px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding-top: 16px;
+      padding-bottom: 16px;
+      background: linear-gradient(to bottom, var(--bg) 60%, transparent);
+    }
+
+    .tab {
+      padding: 12px 32px;
+      border-radius: 100px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+    }
+
+    .tab:hover { background: var(--surface-2); color: var(--text); }
+
+    .tab.active[data-day="1"] {
+      background: linear-gradient(135deg, var(--day1), #ea580c);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 24px rgba(249,115,22,0.3);
+    }
+
+    .tab.active[data-day="2"] {
+      background: linear-gradient(135deg, var(--day2), #7c3aed);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 24px rgba(139,92,246,0.3);
+    }
+
+    /* ── Timeline ── */
+    .timeline-container {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    .day-section {
+      display: none;
+      animation: fadeSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .day-section.active { display: block; }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .day-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .day-number {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 900;
+      color: white;
+    }
+
+    .day-1 .day-number { background: linear-gradient(135deg, var(--day1), #ea580c); }
+    .day-2 .day-number { background: linear-gradient(135deg, var(--day2), #7c3aed); }
+
+    .day-info h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .day-info span {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* ── Event Cards ── */
+    .timeline {
+      position: relative;
+      padding-left: 28px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--surface-3);
+      border-radius: 2px;
+    }
+
+    .event {
+      position: relative;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+
+    .event::before {
+      content: '';
+      position: absolute;
+      left: -28px;
+      top: 24px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--surface-3);
+      background: var(--bg);
+      transition: all 0.3s ease;
+      z-index: 1;
+    }
+
+    .day-1 .event::before { border-color: var(--day1); }
+    .day-2 .event::before { border-color: var(--day2); }
+
+    .event.active::before {
+      transform: scale(1.3);
+    }
+
+    .day-1 .event.active::before { background: var(--day1); box-shadow: 0 0 12px rgba(249,115,22,0.5); }
+    .day-2 .event.active::before { background: var(--day2); box-shadow: 0 0 12px rgba(139,92,246,0.5); }
+
+    .event-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .event-card:hover {
+      border-color: rgba(255,255,255,0.1);
+      transform: translateY(-2px);
+    }
+
+    .event.active .event-card {
+      border-color: rgba(255,255,255,0.1);
+      background: var(--surface-2);
+    }
+
+    .event-time {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .day-1 .event-time { color: var(--day1); }
+    .day-2 .event-time { color: var(--day2); }
+
+    .event-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .event-title i {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .event-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .event-details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), margin 0.3s ease;
+    }
+
+    .event.active .event-details {
+      max-height: 300px;
+      margin-top: 16px;
+    }
+
+    .detail-content {
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .detail-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .detail-item i {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      opacity: 0.6;
+    }
+
+    .expand-hint {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-dim);
+      transition: color 0.2s;
+    }
+
+    .event:hover .expand-hint { color: var(--text-muted); }
+    .event.active .expand-hint i { transform: rotate(180deg); }
+    .expand-hint i { transition: transform 0.3s ease; }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      padding: 40px 24px 60px;
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+
+    .footer .emoji {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .hero { padding: 60px 20px 40px; }
+      .tabs { gap: 8px; }
+      .tab { padding: 10px 24px; font-size: 14px; }
+      .timeline-container { padding: 0 16px 60px; }
+    }
+
+    /* ── Confetti ── */
+    .confetti-piece {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      top: -10px;
+      z-index: 1000;
+      pointer-events: none;
+      animation: confettiFall linear forwards;
+    }
+
+    @keyframes confettiFall {
+      to { top: 110vh; transform: rotate(720deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      <span>WEEKEND PLAN</span>
+    </div>
+    <h1>동수네 부부<br>놀러오다</h1>
+    <p>후배 동수 부부와 함께하는<br>먹고 놀고 웃는 1박 2일</p>
+    <div class="hero-date">
+      <i data-lucide="calendar-days"></i>
+      2026. 3. 14 (토) — 3. 15 (일)
+    </div>
+  </section>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-day="1" onclick="switchDay(1)">
+      <span>🍊 DAY 1</span>
+    </div>
+    <div class="tab" data-day="2" onclick="switchDay(2)">
+      <span>🍇 DAY 2</span>
+    </div>
+  </div>
+
+  <!-- Day 1 -->
+  <div class="timeline-container">
+    <div class="day-section day-1 active" id="day1">
+      <div class="day-header">
+        <div class="day-number">1</div>
+        <div class="day-info">
+          <h2>토요일</h2>
+          <span>3월 14일 — 도착 & 파티</span>
+        </div>
+      </div>
+      <div class="timeline">
+
+        <div class="event" onclick="toggleEvent(this)">
+          <div class="event-card">
+            <div class="event-time">
+              <i data-lucide="sun" style="width:14px;height:14px"></i>
+              점심
+            </div>
+            <div class="event-title">
+              <i data-lucide="utensils"></i>
+              봉평 비빔밥
+            </div>
+            <div class="event-subtitle">든든한 첫 끼로 에너지 충전</div>
+            <div class="event-details">
+              <div class="detail-content">
+                <div class="detail-item">
+                  <i data-lucide="map-pin"></i>
+                  <span>봉평 메밀 비빔밥 — 정갈한 한식으로 환영 식사</span>
+                </div>
+                <div class="detail-item">
+                  <i data-lucide="heart"></i>
+                  <span>오랜만에 만난 반가움과 함께 맛있는 밥 한 끼</span>
+                </div>
+              </div>
+            </div>
+            <div class="expand-hint">
+              <i data-lucide="chevron-down" style="width:14px;height:14px"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="event" onclick="toggleEvent(this)">
+          <div class="event-card">
+            <div class="event-time">
+              <i data-lucide="sun" style="width:14px;height:14px"></i>
+              오후
+            </div>
+            <div class="event-title">
+              <i data-lucide="trees"></i>
+              공원 / 아울렛 나들이
+            </div>
+            <div class="event-subtitle">날씨에 따라 산책 또는 쇼핑</div>
+            <div class="event-details">
+              <div class="detail-content">
+                <div class="detail-item">
+                  <i data-lucide="cloud-sun"></i>
+                  <span>날씨 좋으면 공원 산책, 아니면 아울렛 구경</span>
+                </div>
+                <div class="detail-item">
+                  <i data-lucide="camera"></i>
+                  <span>여유롭게 돌아다니며 사진도 찍고</span>
+                </div>
+              </div>
+            </div>
+            <div class="expand-hint">
+              <i data-lucide="chevron-down" style="width:14px;height:14px"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="event" onclick="toggleEvent(this)">
+          <div class="event-card">
+            <div class="event-time">
+              <i data-lucide="sun" style="width:14px;height:14px"></i>
+              오후 (귀가 후)
+            </div>
+            <div class="event-title">
+              <i data-lucide="gamepad-2"></i>
+              동작 맞추기 게임
+            </div>
+            <div class="event-subtitle">몸으로 말해요! 웃음 보장 타임</div>
+            <div class="event-details">
+              <div class="detail-content">
+                <div class="detail-item">
+                  <i data-lucide="laugh"></i>
+                  <span>팀 나눠서 제스처 게임 — 부부 대결 or 혼합팀</span>
+                </div>
+                <div class="detail-item">
+                  <i data-lucide="trophy"></i>
+                  <span>진 팀은 저녁 치킨 서빙 담당 🐔</span>
+                </div>
+              </div>
+            </div>
+            <div class="expand-hint">
+              <i data-lucide="chevron-down" style="width:14px;height:14px"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="event" onclick="toggleEvent(this)">
+          <div class="event-card">
+            <div class="event-time">
+              <i data-lucide="moon" style="width:14px;height:14px"></i>
+              저녁
+            </div>
+            <div class="event-title">
+              <i data-lucide="drumstick"></i>
+              치킨 & 맥주 🍺
+            </div>
+            <div class="event-subtitle">'나는 솔로' 보면서 치맥 파티</div>
+            <div class="event-details">
+              <div class="detail-content">
+                <div class="detail-item">
+                  <i data-lucide="tv"></i>
+                  <span>나는 솔로 시청하며 입담 배틀</span>
+                </div>
+                <div class="detail-item">
+                  <i data-lucide="message-circle"></i>
+                  <span>"저 사람 찐이다" "아 저건 아니지~" 리얼타임 코멘터리</span>
+                </div>
+                <div class="detail-item">
+                  <i data-lucide="beer"></i>
+                  <span>치킨 + 맥주 = 최고의 조합</span>
+                </div>
+              </div>
+            </div>
+            <div class="expand-hint">
+              <i data-lucide="chevron-down" style="width:14px;height:14px"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="event" onclick="toggleEvent(this)">
+          <div class="event-card">
+            <div class="event-time">
+              <i data-lucide="moon" style="width:14px;height:14px"></i>
+              밤
+            </div>
+            <div class="event-title">
+              <i data-lucide="ghost"></i>
+              무서운 영상 코멘터리
+            </div>
+            <div class="event-subtitle">불 끄고 공포 콘텐츠 타임 👻</div>
+            <div class="event-details">
+              <div class="detail-content">
+                <div class="detail-item">
+                  <i data-lucide="monitor-play"></i>
+                  <span>무서운 영상 보면서 실시간 리액션 & 코멘터리</span>
+                </div>
+                <div class="detail-item">
+                  <i data-lucide="volume-2"></i>
+                  <span>누가 제일 잘 놀래키는지 관찰 포인트</span>
+                </div>
+                <div class="detail-item">
+                  <i data-lucide="moon-star"></i>
+                  <span>적당히 무서워진 후 수다 떨며 취침</span>
+                </div>
+              </div>
+            </div>
+            <div class="expand-hint">
+              <i data-lucide="chevron-down" style="width:14px;height:14px"></i>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Day 2 -->
+    <div class="day-section day-2" id="day2">
+      <div class="day-header">
+        <div class="day-number">2</div>
+        <div class="day-info">
+          <h2>일요일</h2>
+          <span>3월 15일 — 마무리 & 해산</span>
+        </div>
+      </div>
+      <div class="timeline">
+
+        <div class="event" onclick="toggleEvent(this)">
+          <div class="event-card">
+            <div class="event-time">
+              <i data-lucide="sunrise" style="width:14px;height:14px"></i>
+              오전
+            </div>
+            <div class="event-title">
+              <i data-lucide="footprints"></i>
+              아침 산책 / 러닝
+            </div>
+            <div class="event-subtitle">상쾌한 아침 공기와 함께</div>
+            <div class="event-details">
+              <div class="detail-content">
+                <div class="detail-item">
+                  <i data-lucide="wind"></i>
+                  <span>간단한 산책 or 가볍게 러닝 — 컨디션에 따라 선택</span>
+                </div>
+                <div class="detail-item">
+                  <i data-lucide="coffee"></i>
+                  <span>돌아와서 따뜻한 커피 한 잔</span>
+                </div>
+              </div>
+            </div>
+            <div class="expand-hint">
+              <i data-lucide="chevron-down" style="width:14px;height:14px"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="event" onclick="toggleEvent(this)">
+          <div class="event-card">
+            <div class="event-time">
+              <i data-lucide="sun" style="width:14px;height:14px"></i>
+              점심
+            </div>
+            <div class="event-title">
+              <i data-lucide="pizza"></i>
+              나폴리 피제리아 🍕
+            </div>
+            <div class="event-subtitle">마지막 식사는 맛있는 피자로</div>
+            <div class="event-details">
+              <div class="detail-content">
+                <div class="detail-item">
+                  <i data-lucide="flame"></i>
+                  <span>화덕 피자로 마무리 — 역시 피자는 진리</span>
+                </div>
+                <div class="detail-item">
+                  <i data-lucide="hand-metal"></i>
+                  <span>다음 약속 잡으면서 아쉬운 해산</span>
+                </div>
+              </div>
+            </div>
+            <div class="expand-hint">
+              <i data-lucide="chevron-down" style="width:14px;height:14px"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="event" onclick="toggleEvent(this)">
+          <div class="event-card" style="background: linear-gradient(135deg, var(--surface), var(--surface-2)); border-color: rgba(139,92,246,0.2);">
+            <div class="event-time">
+              <i data-lucide="sun" style="width:14px;height:14px"></i>
+              식사 후
+            </div>
+            <div class="event-title">
+              <i data-lucide="hand-heart"></i>
+              해산 — 다음에 또 만나! 👋
+            </div>
+            <div class="event-subtitle">즐거웠다 동수야, 다음엔 우리가 간다!</div>
+            <div class="event-details">
+              <div class="detail-content">
+                <div class="detail-item">
+                  <i data-lucide="sparkles"></i>
+                  <span>1박 2일 완벽한 주말 완료 ✨</span>
+                </div>
+              </div>
+            </div>
+            <div class="expand-hint">
+              <i data-lucide="chevron-down" style="width:14px;height:14px"></i>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="emoji">🧡</div>
+    <p>동수 & 부인, 환영합니다!<br>즐거운 주말 되자 🎉</p>
+  </div>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Tab switching
+    function switchDay(day) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.day-section').forEach(s => s.classList.remove('active'));
+
+      document.querySelector(`.tab[data-day="${day}"]`).classList.add('active');
+      document.getElementById(`day${day}`).classList.add('active');
+
+      // Close all expanded events
+      document.querySelectorAll('.event').forEach(e => e.classList.remove('active'));
+    }
+
+    // Toggle event card
+    function toggleEvent(el) {
+      const wasActive = el.classList.contains('active');
+      // Close all in same section
+      el.closest('.day-section').querySelectorAll('.event').forEach(e => e.classList.remove('active'));
+      if (!wasActive) {
+        el.classList.add('active');
+      }
+    }
+
+    // Confetti on load
+    function launchConfetti() {
+      const colors = ['#f97316', '#8b5cf6', '#facc15', '#34d399', '#f43f5e', '#60a5fa'];
+      for (let i = 0; i < 50; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = Math.random() * 100 + 'vw';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        piece.style.animationDelay = Math.random() * 1.5 + 's';
+        piece.style.width = (Math.random() * 6 + 4) + 'px';
+        piece.style.height = (Math.random() * 6 + 4) + 'px';
+        piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 5000);
+      }
+    }
+
+    // Launch confetti after a short delay
+    setTimeout(launchConfetti, 500);
+
+    // Swipe support for mobile
+    let touchStartX = 0;
+    document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+    document.addEventListener('touchend', e => {
+      const diff = e.changedTouches[0].clientX - touchStartX;
+      const currentDay = document.querySelector('.tab.active').dataset.day;
+      if (Math.abs(diff) > 80) {
+        if (diff < 0 && currentDay === '1') switchDay(2);
+        if (diff > 0 && currentDay === '2') switchDay(1);
+      }
+    });
+  </script>
+
+</body>
+</html>
